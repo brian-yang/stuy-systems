@@ -1,0 +1,397 @@
+Directories
+
+A *nix directory is a file containing names of files in dir. with basic infolike file type.
+
+Moving files into/out of a directory means changing the directory file, not actually moving any data.
+
+opendir - <dirent.h>
+
+	Open a directory file
+
+	Will not change the cwd, it only allows your program to read the contents of the directory file
+
+	opendir( <PATH> )
+
+	Returns a pointer to the directory stream (DIR *)
+
+closedir - <dirent.h>
+
+	 Closes the directory stream and frees the pointer associated with it.
+
+	 closedir( <DIRECTORY STREAM> )
+
+readdir - <dirent.h>
+
+	readdir( <DIRECTORY STREAM> )
+
+	Returns a pointer to the next entry in a directory stream,
+	or NULL if all entries have already been returned.
+
+	struct dirent - <sys/types.h>
+
+	       Directory struct that contains the information
+	       stored in a directory file.
+
+	       Some of the data members
+
+==============================================
+Aim: Input? fgets about it?
+
+Do now: Matt So demonstrated the homework.
+
+getcwd
+	get cur working dir of program
+
+	getcwd(<buffer>, <size>)
+		copies path into cwd into buffer arg (char *)
+		copies at most SIZE characters into the buffer
+
+chdir - <unistd.h>
+
+      change the working directory of a program
+
+      chdir ( <path> )
+
+      returns 0 if successful, -1 (errno if not)
+
+Command line arguments:
+
+	int main( int argc, char *argv[] )
+
+	program name is considered the first command line argument
+
+	argc
+		number of command line arguments
+
+	argv
+		array of command line arguments
+
+scanf - <stdio.h>
+
+      scanf ( <format string>, <var 1>, <var2> ... )
+
+      reads in data from stdin using the format string to determine types
+
+      puts the data in variables
+==================================================
+11/4
+Aim: sending mixed signals
+
+fgets - <stdio.h>
+
+      read in from file stream and store it in a string
+
+      fgets( <dest, bytes, file pointer> )
+      	     reads at most n-1 from file strean f abd store it in s
+
+      File pointer
+
+      	   FILE * type, more complex than a file descriptor
+
+	   stdin is a FILE * variable
+
+      stops at newline, EOF, or byte limit.
+
+      if applicable, keeps the \n as part of the string, appends NULL after
+
+      will keep newline
+
+ps
+	shows active processes
+
+	TTY sessions are shown
+	
+	-a flag a flag that shows other users' processes
+	-x flag all non terminal-controlling
+	every pid has an entry in /proc
+
+Signals
+
+	limited way of sending information to a process.
+
+	kill command line utility to send a signal to a process
+
+	     $ kill <pid>
+	       sends signal 15 (SIGTERM) to process
+
+==========================================================================
+Aim: Are your processes running? - Then you should go out and catch them!
+
+Processes
+	Every running probram is a process. A process can create subprocesses, but
+	these are no different from regular processes.
+
+	A processor can handle 1 process per cycle (per core).
+	"Multitasking" appears to happen because the processor
+	switches between all the active processes quickly.
+
+ pid
+	every process has a unique identifier called the pid.
+	pid 1 is the init process
+	Each entry in the /proc directot is a current pid
+
+getpid() - <unistd.h>
+	  returns current process' pid
+
+getppid() - <unistd.h>
+	  returns paren't process' parent pid
+
+Signals
+
+	Limited way of sending information to a process.
+	kill
+		Command line utility to send a signal to a process
+
+		$ kill <PID>
+		       Sends signal 15 (SIGTERM) to PID
+
+
+		  kill -<SIGNAL> <PID>
+		       Sends SIGNAL to PID
+
+
+	killall [-<SIGNAL>] <PROCESS>
+
+		Sends SIGTERM (or SIGNAL if provided) to all processes with
+		PROCESS as the name
+
+Signal handling in c programs <signal.h>
+
+       kill
+		kill(<PID>, <SIGNAL>)
+
+		Returns 0 on success or -1 (errno) to failure.
+
+sighandler
+	to intercept signals in a c program you must create a signal handling function.
+
+	some signals (like SIGKILL) cannot be caught.
+
+	static void sighandler (int signo)
+
+	Must be static, must be void, must take a single int parameter.
+
+	static: the function can only be called from within the file it is defined.
+
+signal( SIGINT, sighandler );
+sleep(1);
+=========================================================
+* 11/10
+Aim: What the fork?
+
+fork() - <unistd.h>
+    Creates a separate process based on the current one, the new process is called
+    the child, the original is the parent.
+
+    The child process is a duplicate of the parent process. All parts of the parent process
+    are copied, including stack and heap memory, and the file table.
+
+    Returns 0 to the child and the child's pid to the parent or -1 (errno).
+
+    If a parent process ends before the child, the child's new parent pid is 1.
+=========================================================
+11/15
+Aim: Wait for it...
+
+But what about threads you ask?
+
+    A quick note on threads: A thread is separate executable entity
+    similar to a child process, except a thread is not a standalone process.
+
+    It does not have its own memory space, instead it shares its parent's memory.
+
+wait - <unistd.h>
+
+     Stops a parent process from running until any child has provided status
+     information to the parent via a signal. (usually the child has exited).
+
+     Returns the pid of the child that exited, or -1 (errno)
+
+     wait(int *status)
+     	      The parameter (status) is used to store information about how the process exited.
+==============================================================
+11/16
+Aim: Time to make an executive decision.
+execlp
+execvp
+==============================================================
+strsep - <string.h>
+
+       Used for parsing a string with a common delimiter
+
+       strsep( <SOURCE>, <DELIMITER> )
+
+       Locates the first occurrence of the delimiter in a string and replaces that character with null
+
+       only strsep on mutable strings
+
+       Returns the beginning of the original string, sets the source string to the string starting at 1 index past the location of the new null
+===============================================================
+Aim: Redirection; how does it ... SQUIRREL
+
+File Redirection
+
+     Changing the usual input/output behavior of a program
+
+     Command line redirection
+     	     >
+		Redirects stdout to a file
+		Overwrites the contents of the file
+		<COMMAND> > <FILE>
+		ls > file-list
+
+	     >>
+		Redirects stdout to a file by appending
+
+	     2>
+		Redirects stderr to a file
+
+		Overwrites the file (2>>appends)
+
+	     &>
+		Redirect stdout and stderr
+
+	     <
+		Redirects stdin from a file
+
+	     | (pipe)
+		Redirect stdout from one command to stdin of the next
+
+		ls | wc
+
+
+	dup2 - <unistd.h>
+
+	     Redirects one file descriptor to another
+
+	     dup2( fd1, fd2 )
+	     	   Redirects fd2 to fd1
+
+		   You will lose any reference to the original
+		   fd2, that file is closed.
+
+	dup - <unistd.h>
+
+	    Duplicates an existing entry in the file t able.
+	    Returns a new file descriptor for the duplicate entry.
+
+	    dup(fd)
+
+		returns the new file descriptor
+==================================================
+11/29
+Aim: sharing is caring!
+
+shared memory - <sys/shm.h>, <sys/ipc.h>, <sys/types.h>
+
+       A segment of heap memory that can be accessed by multiple processes.
+
+       Shared memory is accessed via some key that is known by any process that needs to access it.
+
+       Shared memory does not get released when a program exits.
+
+       5 shared memory operations:
+
+       	 Create the segment (happens once)
+	 Access the segment (happens once per process)
+	 Attach the segment to a variable (once per process)
+	 Detach the segment from a variable (once per process)
+	 Remove the segment (happens once)
+
+       shmget
+	Create or access a shared memory segment.
+	Returns a shared memory descriptor (similar idea to a file descriptor), or -1 if it fails.
+	shmget( key, size, flags )
+		key
+			unique integer identifier for the shared memory segment (like a file name)
+
+		size
+			how much memory to request
+
+		flags
+			includes permissions for the segment.
+			combine with bitwise or
+
+			IPC_CREAT: Create the segment
+				   If the segment is new, will set value to all 0s
+
+			IPC_EXCL; Fail if the segment already exists and IPC_CREATE is on
+
+		example:
+			int sd;
+			sd = shmget( 24601, 1024, IPC_CREAT | 0664)
+
+	shmat
+		Attach a shared memory segment to a variable.
+
+		Returns a pointer to the segment, or -1 (errno).
+
+		shmat( descriptor, address, flags)
+
+		       descriptor
+				The return value of shmget
+
+			address
+				If 0, the OS will provide the appropriate address
+			flag
+				Usually 0, there is one useful flag
+
+				SHM_RDONLY: makes the memory read only
+=========================================================
+11/30
+Aim: Memes
+
+ipcs - check if there is shared memory
+
+More Shared Memory
+
+     shmdt
+	Detach a variable from a shared memory segment.
+
+	Returns 0 upon success or -1 upon failure.
+
+	shmdt( pointer )
+	       pointer
+		The address used to access the segment
+
+	example
+		shmdt(p);
+
+
+      shmctl
+
+	Perform operations on the shared memory segment
+
+	Each shared memory segment has metadata that can be stored in a struct
+	(struct shmid_ds)
+
+	Some of that data stored: last access, size, pid of creator, pid of last modification
+
+	shmctl(descriptor, command, buffer)
+
+		descriptor
+			Return value of shmget
+
+		commands:
+			IPC_RMID: Remove a shared memory segment
+			IPC_STAT: Populate the buffer( struct shmid_ds ) with information
+			IPC_SET: Set some of the information for the segment to the info in buffer
+
+		example:
+			struct shmid_ds d;
+			shmctl( sd, IPC_RMID, &d);
+
+	ftok - <sys/ipc.h>
+	     Generate a key useful for IPC functionss
+
+	     ftok( path, x )
+
+	     	   path
+			A path to some file, the file must be accessible by the program.
+
+		   x
+			An int used to generate the key
+
+		The same path and x will always generate the same key
+
+	sd = shmget( ftok("dir/file", 12), 1024, IPC_CREAT| 0664 ) 

@@ -1,0 +1,178 @@
+1/5/17
+Aim: Cisco in an hour VI: The Undiscovered Country
+
+Transport Layer
+	  Computer to computer connection over a network
+
+	  Unconcerned with the individual hops of layer 3 traffic
+
+	  Each destination address has multiple ports
+
+	       65535 ports
+
+	       Each port corresponds to a particular service
+
+	       ports < 1024 are well known, reserved ports
+
+	       Regulated by the Internet Assigned Numbers authority (IANA)
+
+	  TCP
+		Transmission Control Protocol
+
+		Reliable connection
+
+		Guarantees connection of data
+
+		Data is considered a continuous stream that arrives in the order it is sent (which may not be true in the network layer)
+
+		Connections are established using a 3-way handshake
+
+			    Server "binds" to a port and waits
+			    1. Client sends a SYN message to the server
+			    2. Server sends the client a SYN_ACK message
+			    3. Client sends an ACK message to the server
+
+	UDP
+		User Datagram Protocol
+
+		Does not require an explicit connection
+
+		Data is sent as discrete datagrams with a set size (as opposed to a continuous stream)
+
+		Datagrams may be dropped or received out of ordered.
+
+		Assumes that any kind of error checking is handled at a layer level
+
+		Useful when it comes with speed
+=================================================
+1/6/17
+Aim: Cisco in an Hour VII: Adrian's Revenge
+
+Remaining Layers
+
+	  5. Session
+	  6. Presentation
+	  7. Application
+
+	  These layers are incorporated into programs that use network connections.
+
+	  Session layer represents end-to-end connections in a program (sockets).
+
+	  Presentation layer represents how programs package transmitted data
+
+	  Application layer represents the programs that users interact with.
+
+Sockets ( sys/socket.h, sys/types.h )
+	A socket is a connection between two computers created programmatically.
+
+	A socket has 2 ends, each one consisting of an IP Address/Port pair.
+
+	To use a socket
+	   1. create the socket
+	   2. bind it to an address and port
+	   3. listen/initiate a connection
+	   4. send/receive data
+
+	socket <sys/socket.h>
+	       creates a socket
+
+	       returns a socket descriptor (int that works like a file descriptor)
+
+	       Socket( <domain>, <type>, <protocol> )
+
+	       	       domain: type of address, IPv4, IPv6...
+		       	       AF_INET (consant): IPv4
+		       type: tcp/udp
+		       	     SOCK_STREAM: tcp
+			     SOCK_DGRAM: udp
+
+		       protocol
+			     Combination of domain and type settings
+			     If set to 0, the OS will set to correct protocol
+
+		example:
+			int sd = socket( AF_INET, SOCK_STREAM, 0)
+
+	bind <sys/socket.h> <netinet/in.h>
+	     Binds the socket to an address and port
+
+	     Returns 0 (success) or -1 (failure)
+
+	     A server might bind to any incoming address but only a specific port,
+	     whereas a client would bind to a specific address and port
+
+	     bind( <socket descriptor>, <address>, <address length>)
+	     	   socket descriptor: return value of socket
+		   address: pointer to a struct sockaddr_in (struct sockaddr_in6 for IPv6)
+		   	    sin_family: address domain (eg. AF_INET)
+
+			    sin_addr:
+				IP address in binary
+				
+					sin_addr.s_addr = INADDR_ANY// Any incoming connection or any local IP address
+
+				inet_aton(<string>, <address variable>)
+					<arpa/inet.h>
+					Will convert a string representing an ip address to the correct format and place it in the
+					second parameter
+==========================================================
+socket is complete when ends are connected
+
+       	  	   	     sin_port
+			     	htons ( int )
+				      Returns the port in the correct order
+				      big endian: most significant byte first
+
+			listen (server only) <sys/socket.h>
+
+			       TCP server will listen to a socket and wait for an incoming connection
+
+			       listen ( socket descriptor, queue )
+			       	      socket descriptor: return value of socket
+				      queue = number of connections that can wait, doesn't work any more
+			       listen ( sd, 1 );
+
+			       returns 0 or -1 on failure
+
+		         accept (server only) <sys/socket.h>
+
+			 	Set up a tcp connection
+
+				Handles the required 3-way handshake
+
+				A complete socket has 5 pieces of information, IP address and port # for both the client and server,
+				and protocol (tcp/udp)
+				
+				Once a client connection gets past listen(), accept creates a new socket with the client information added, and
+				returns a descriptor to the new socket
+
+				accept ( <socket descriptor>, <socket address>, <address length> )
+				       socket descriptor: return value of socket
+
+				       address: pointer to a struct sockaddr_in
+				       		Will contain the correct address information after the connection is made
+
+				       length: Pointer to a variable with the size of the address will be set after the connection is made.
+============================================================
+Aim: Get more power from your sockets
+
+Sockets in C
+	accept (server only) <sys/socket.h>
+
+	       accept( <socket descriptor>, <socket address>, <address length>)
+
+	       	       socket descriptor: return value of socket
+
+		       address: pointer to a struct sockaddr_in
+		       		will contain the correct address information after the connection is made
+
+			length: Pointer to a variable with the size of the address will be set after the connection is made.
+
+	connect (client only) <sys/socket.h> <sys/types.h>
+		Connect to another program over a socket
+
+		Handles the client end of the 3 way handshake
+
+		connect( <socket descriptor>, <address>, <address size> )
+		
+			address struct is the same as in bind
